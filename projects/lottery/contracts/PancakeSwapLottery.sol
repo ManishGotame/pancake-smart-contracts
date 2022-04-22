@@ -13,6 +13,11 @@ import "./interfaces/IPancakeSwapLottery.sol";
  * @notice It is a contract for a lottery system using
  * randomness provided externally.
  */
+
+
+ /*
+    making notes as I read through the contract
+  */
 contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
     using SafeERC20 for IERC20;
 
@@ -35,8 +40,10 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
     uint256 public constant MAX_LENGTH_LOTTERY = 4 days + 5 minutes; // 4 days
     uint256 public constant MAX_TREASURY_FEE = 3000; // 30%
 
-    IERC20 public cakeToken;
-    IRandomNumberGenerator public randomGenerator;
+    IERC20 public cakeToken; // NOTE: ERC 20 token contract 
+    IRandomNumberGenerator public randomGenerator; // NOTE: vrf random generator address
+
+    // NOTE: used for the frontend interface and here too
 
     enum Status {
         Pending,
@@ -45,6 +52,18 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         Claimable
     }
 
+    /* NOTE:
+        In our case, we should have
+            status
+            sarttime
+            endtime -- a week 
+                if filled, the lottery will go off
+                else the tokens will be returned
+            
+            fee - subtracted from the winners for us to keep
+            finalNumber -- the lose number.
+     */
+    
     struct Lottery {
         Status status;
         uint256 startTime;
@@ -61,6 +80,24 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         uint32 finalNumber;
     }
 
+    /*
+        NOTE:
+
+        Room of 3
+             - win rate is 66%
+             - 0.1 to 1.3% fee
+             - 1 loser (this is everywhere)
+
+        struct Room {
+            uint256 maxNumber;
+        }
+
+        struct Ticket {
+            Room roomNumber;
+            address owner;
+        }
+
+     */
     struct Ticket {
         uint32 number;
         address owner;
@@ -200,7 +237,6 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         require(_ticketIds.length == _brackets.length, "Not same length");
         require(_ticketIds.length != 0, "Length must be >0");
         require(_ticketIds.length <= maxNumberTicketsPerBuyOrClaim, "Too many tickets");
-        require(_lotteries[_lotteryId].status == Status.Claimable, "Lottery not claimable");
 
         // Initializes the rewardInCakeToTransfer
         uint256 rewardInCakeToTransfer;

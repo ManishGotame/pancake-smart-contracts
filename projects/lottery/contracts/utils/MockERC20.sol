@@ -12,6 +12,9 @@ contract MockERC20 is ERC20 {
         _mint(msg.sender, supply);
     }
 
+    
+    // this is how we can try to build out test faucet
+
     function mintTokens(uint256 _amount) external {
         _mint(msg.sender, _amount);
     }
